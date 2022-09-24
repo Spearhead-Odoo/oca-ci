@@ -107,12 +107,12 @@ RUN virtualenv -p python$python_version /opt/odoo-venv \
 ENV PATH=/opt/odoo-venv/bin:$PATH
 
 ARG odoo_version
-
+ARG odoo_org_repo=odoo/odoo
 # Install Odoo requirements (use ADD for correct layer caching).
 # We use requirements from OCB for easier maintenance of older versions.
 # We use no-binary for psycopg2 because its binary wheels are sometimes broken
 # and not very portable.
-ADD https://raw.githubusercontent.com/OCA/OCB/$odoo_version/requirements.txt /tmp/ocb-requirements.txt
+ADD https://raw.githubusercontent.com/$odoo_org_repo/$odoo_version/requirements.txt /tmp/ocb-requirements.txt
 RUN pip install --no-cache-dir --no-binary psycopg2 -r /tmp/ocb-requirements.txt
 
 # Install other test requirements.
@@ -125,7 +125,6 @@ RUN pip install --no-cache-dir \
   "odoo-autodiscover>=2 ; python_version<'3'"
 
 # Install Odoo (use ADD for correct layer caching)
-ARG odoo_org_repo=odoo/odoo
 ADD https://api.github.com/repos/$odoo_org_repo/git/refs/heads/$odoo_version /tmp/odoo-version.json
 RUN mkdir /tmp/getodoo \
     && (curl -sSL https://github.com/$odoo_org_repo/tarball/$odoo_version | tar -C /tmp/getodoo -xz) \

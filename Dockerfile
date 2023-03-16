@@ -149,6 +149,7 @@ ENV OPENERP_SERVER=/etc/odoo.cfg
 COPY bin/* /usr/local/bin/
 
 ENV ODOO_VERSION=$odoo_version
+ENV GIT_TOKEN=
 ENV PGHOST=postgres
 ENV PGUSER=odoo
 ENV PGPASSWORD=odoo

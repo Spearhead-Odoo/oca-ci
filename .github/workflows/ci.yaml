@@ -28,18 +28,21 @@ jobs:
           - python_version: "3.8"
             odoo_version: "16.0"
             odoo_org_repo: "Spearhead-Odoo/odoo"
+            odoo_enterprise_org_repo: "Spearhead-Odoo/enterprise"
             image_name: py3.8-odoo16.0
           - python_version: "3.9"
             odoo_version: "16.0"
             odoo_org_repo: "Spearhead-Odoo/odoo"
+            odoo_enterprise_org_repo: "Spearhead-Odoo/enterprise"
             image_name: py3.9-odoo16.0
           - python_version: "3.10"
             odoo_version: "16.0"
             odoo_org_repo: "Spearhead-Odoo/odoo"
+            odoo_enterprise_org_repo: "Spearhead-Odoo/enterprise"
             image_name: py3.10-odoo16.0
     services:
       postgres:
-        image: postgres:9.6
+        image: postgres:14.0
         env:
           POSTGRES_USER: odoo
           POSTGRES_PASSWORD: odoo
@@ -62,7 +65,9 @@ jobs:
             python_version=${{ matrix.python_version }}
             odoo_version=${{ matrix.odoo_version }}
             odoo_org_repo=${{ matrix.odoo_org_repo }}
+            odoo_enterprise_org_repo=${{ matrix.odoo_enterprise_org_repo }}
             setuptools_constraint=${{ matrix.setuptools_constraint }}
+            GIT_TOKEN=${{ secrets.GIT_TOKEN }}
           tags: |
             ghcr.io/spearhead-odoo/oca-ci/${{ matrix.image_name }}:latest
           labels: |
@@ -83,7 +88,9 @@ jobs:
             python_version=${{ matrix.python_version }}
             odoo_version=${{ matrix.odoo_version }}
             odoo_org_repo=${{ matrix.odoo_org_repo }}
+            odoo_enterprise_org_repo=${{ matrix.odoo_enterprise_org_repo }}
             setuptools_constraint=${{ matrix.setuptools_constraint }}
+            GIT_TOKEN=${{ secrets.GIT_TOKEN }}
           tags: |
             ghcr.io/spearhead-odoo/oca-ci/${{ matrix.image_name }}:latest
           labels: |

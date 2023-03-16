@@ -9,6 +9,7 @@ RUN apt-get update -qq \
     && DEBIAN_FRONTEND=noninteractive apt-get install -qq --no-install-recommends \
         ca-certificates \
         curl \
+        unzip \
         gettext \
         git \
         gnupg \
@@ -108,6 +109,9 @@ ENV PATH=/opt/odoo-venv/bin:$PATH
 
 ARG odoo_version
 ARG odoo_org_repo=odoo/odoo
+ARG odoo_enterprise_org_repo=odoo/enterprise
+ARG GIT_TOKEN=""
+
 # Install Odoo requirements (use ADD for correct layer caching).
 # We use requirements from OCB for easier maintenance of older versions.
 # We use no-binary for psycopg2 because its binary wheels are sometimes broken
@@ -130,6 +134,10 @@ RUN mkdir /tmp/getodoo \
     && (curl -sSL https://github.com/$odoo_org_repo/tarball/$odoo_version | tar -C /tmp/getodoo -xz) \
     && mv /tmp/getodoo/* /opt/odoo \
     && rmdir /tmp/getodoo
+RUN (curl -sSL --insecure -H "Authorization: token ${GIT_TOKEN}" https://github.com/$odoo_enterprise_org_repo/archive/refs/heads/$odoo_version.zip -o /tmp/enterprise.zip) \
+    && unzip -q /tmp/enterprise.zip -d /tmp/enterprise \
+    && mv /tmp/enterprise/enterprise-$odoo_version/* /opt/odoo/addons \
+    && rmdir /tmp/enterprise --ignore-fail-on-non-empty
 RUN pip install --no-cache-dir -e /opt/odoo \
     && pip list
 

@@ -15,18 +15,29 @@ RUN apt-get update -qq \
         gnupg \
         lsb-release \
         software-properties-common \
-        expect-dev
+        expect-dev \
+        pipx
+
+ENV PIPX_BIN_DIR=/usr/local/bin
 
 # Install wkhtml
-RUN curl -sSL https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/0.12.5/wkhtmltox_0.12.5-1.$(lsb_release -c -s)_amd64.deb -o /tmp/wkhtml.deb \
+RUN case $(lsb_release -c -s) in \
+      focal) WKHTML_DEB_URL=https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/0.12.5/wkhtmltox_0.12.5-1.focal_amd64.deb ;; \
+      jammy) WKHTML_DEB_URL=https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6.1-2/wkhtmltox_0.12.6.1-2.jammy_amd64.deb ;; \
+    esac \
+    && curl -sSL $WKHTML_DEB_URL -o /tmp/wkhtml.deb \
     && apt-get update -qq \
-    && dpkg --force-depends -i /tmp/wkhtml.deb \
-    && DEBIAN_FRONTEND=noninteractive apt-get install -qq -f --no-install-recommends \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -qq -y --no-install-recommends /tmp/wkhtml.deb  \
     && rm /tmp/wkhtml.deb
 
 # Install nodejs dependencies
-RUN curl -sSL https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add - \
-    && echo "deb https://deb.nodesource.com/node_15.x `lsb_release -c -s` main" > /etc/apt/sources.list.d/nodesource.list \
+RUN case $(lsb_release -c -s) in \
+      focal) NODE_SOURCE="deb https://deb.nodesource.com/node_15.x focal main" \
+             && curl -sSL https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add - ;; \
+      jammy) NODE_SOURCE="deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_20.x nodistro main" \
+             && curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg ;; \
+    esac \
+    && echo "$NODE_SOURCE" | tee /etc/apt/sources.list.d/nodesource.list \
     && apt-get update -qq \
     && DEBIAN_FRONTEND=noninteractive apt-get install -qq nodejs
 # less is for odoo<12
@@ -51,7 +62,8 @@ ARG python_version
 RUN apt-get update -qq \
     && DEBIAN_FRONTEND=noninteractive apt-get install -qq --no-install-recommends \
        build-essential \
-       python$python_version-dev \
+       python${python_version}-dev \
+       python${python_version}-venv \
        # we need python 3 for our helper scripts
        python3 \
        python3-venv \
@@ -74,36 +86,21 @@ RUN apt-get update -qq \
        # some other build tools
        swig \
        libffi-dev \
-       pkg-config \
-       # We should install distutils if and only if it exists
-    && apt-cache --generate pkgnames \
-       | grep --line-regexp --fixed-strings \
-          -e python$python_version-distutils \
-       | xargs apt install -y
-
-# Install pipx, which we use to install other python tools.
-ENV PIPX_BIN_DIR=/usr/local/bin
-ENV PIPX_DEFAULT_PYTHON=/usr/bin/python3
-RUN python3 -m venv /opt/pipx-venv \
-    && /opt/pipx-venv/bin/pip install --no-cache-dir pipx \
-    && ln -s /opt/pipx-venv/bin/pipx /usr/local/bin/
-
-# We don't use the ubuntu virtualenv package because it unbundles pip dependencies
-# in virtualenvs it create.
-RUN pipx install --pip-args="--no-cache-dir" virtualenv
+       pkg-config
 
 # We use manifestoo to check licenses, development status and list addons and dependencies
 RUN pipx install --pip-args="--no-cache-dir" "manifestoo>=0.3.1"
 
-# Install setuptools-odoo-get-requirements and setuptools-odoo-makedefault helper
-# scripts.
-RUN pipx install --pip-args="--no-cache-dir" "setuptools-odoo>=3.0.7"
+# Install pyproject-dependencies helper scripts.
+ARG build_deps="setuptools-odoo wheel whool"
+RUN pipx install --pip-args="--no-cache-dir" pyproject-dependencies
+RUN pipx inject --pip-args="--no-cache-dir" pyproject-dependencies $build_deps
 
 # Make a virtualenv for Odoo so we isolate from system python dependencies and
 # make sure addons we test declare all their python dependencies properly
 ARG setuptools_constraint
-RUN virtualenv -p python$python_version /opt/odoo-venv \
-    && /opt/odoo-venv/bin/pip install "setuptools$setuptools_constraint" "pip>=21.3.1;python_version>='3.6'" \
+RUN python$python_version -m venv /opt/odoo-venv \
+    && /opt/odoo-venv/bin/pip install -U "setuptools$setuptools_constraint" "pip" \
     && /opt/odoo-venv/bin/pip list
 ENV PATH=/opt/odoo-venv/bin:$PATH
 
@@ -122,11 +119,9 @@ RUN pip install --no-cache-dir --no-binary psycopg2 -r /tmp/ocb-requirements.txt
 # Install other test requirements.
 # - coverage
 # - websocket-client is required for Odoo browser tests
-# - odoo-autodiscover required for python2
 RUN pip install --no-cache-dir \
   coverage \
-  websocket-client \
-  "odoo-autodiscover>=2 ; python_version<'3'"
+  websocket-client
 
 # Install Odoo (use ADD for correct layer caching)
 ADD https://api.github.com/repos/$odoo_org_repo/git/refs/heads/$odoo_version /tmp/odoo-version.json

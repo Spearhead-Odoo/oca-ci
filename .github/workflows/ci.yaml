@@ -26,6 +26,13 @@ jobs:
             odoo_org_repo: "odoo/odoo"
             odoo_enterprise_org_repo: "Spearhead-Odoo/enterprise"
             image_name: py3.10-odoo17.0
+          - python_version: "3.7"
+            codename: jammy
+            odoo_version: "13.0"
+            odoo_org_repo: "odoo/odoo"
+            odoo_enterprise_org_repo: "Spearhead-Odoo/enterprise"
+            setuptools_constraint: "<58"  # vatnumber needs setuptools with 2to3 support
+            image_name: py3.7-odoo13.0
     services:
       postgres:
         image: postgres:14.0

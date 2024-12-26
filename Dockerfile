@@ -1,7 +1,7 @@
 ARG codename=focal
 
 FROM ubuntu:$codename
-ENV LANG C.UTF-8
+ENV LANG=C.UTF-8
 USER root
 
 # Basic dependencies
@@ -49,9 +49,10 @@ RUN curl -sSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
     && apt-get update -qq \
     && DEBIAN_FRONTEND=noninteractive apt-get install -qq postgresql-client-12
 
-# Install Google Chrome for browser tests
-RUN curl -sSL https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb -o /tmp/chrome.deb \
-    && apt-get -y install --no-install-recommends /tmp/chrome.deb \
+# Install Google following Odoo's Runbot guideline https://github.com/odoo/runbot/blob/f8f435d468135486146a2e61e8d15d0f453c0e15/runbot/data/dockerfile_data.xml#L139-L140
+RUN curl -sSL https://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_126.0.6478.182-1_amd64.deb -o /tmp/chrome.deb \
+    && apt-get update -qq \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -qq -y --no-install-recommends /tmp/chrome.deb  \
     && rm /tmp/chrome.deb
 
 RUN add-apt-repository -y ppa:deadsnakes/ppa
@@ -90,6 +91,8 @@ RUN apt-get update -qq \
 
 # We use manifestoo to check licenses, development status and list addons and dependencies
 RUN pipx install --pip-args="--no-cache-dir" "manifestoo>=0.3.1"
+# Used in oca_checklog_odoo to check odoo logs for errors and warnings
+RUN pipx install --pip-args="--no-cache-dir" checklog-odoo
 
 # Install pyproject-dependencies helper scripts.
 ARG build_deps="setuptools-odoo wheel whool"
@@ -111,10 +114,15 @@ ARG GIT_TOKEN=""
 
 # Install Odoo requirements (use ADD for correct layer caching).
 # We use requirements from OCB for easier maintenance of older versions.
-# We use no-binary for psycopg2 because its binary wheels are sometimes broken
-# and not very portable.
 ADD https://raw.githubusercontent.com/$odoo_org_repo/$odoo_version/requirements.txt /tmp/ocb-requirements.txt
-RUN pip install --no-cache-dir --no-binary psycopg2 -r /tmp/ocb-requirements.txt
+# The sed command is to use the latest version of gevent and greenlet. The
+# latest version works with all versions of Odoo that we support here, and the
+# oldest pinned in Odoo's requirements.txt don't have wheels, and don't build
+# anymore with the latest cython.
+RUN sed -i -E "s/^(gevent|greenlet)==.*/\1/" /tmp/ocb-requirements.txt \
+ && pip install --no-cache-dir \
+      -r /tmp/ocb-requirements.txt \
+      packaging
 
 # Install other test requirements.
 # - coverage
@@ -162,3 +170,4 @@ ENV INCLUDE=
 ENV EXCLUDE=
 ENV OCA_GIT_USER_NAME=oca-ci
 ENV OCA_GIT_USER_EMAIL=oca-ci@odoo-community.org
+ENV OCA_ENABLE_CHECKLOG_ODOO=

@@ -20,17 +20,18 @@ jobs:
       matrix:
         include:
           # odoo/odoo
+          - python_version: "3.12"
+            codename: jammy
+            odoo_version: "18.0"
+            odoo_org_repo: "odoo/odoo"
+            odoo_enterprise_org_repo: "Spearhead-Odoo/enterprise"
+            image_name: py3.12-odoo18.0
           - python_version: "3.10"
             codename: jammy
             odoo_version: "17.0"
             odoo_org_repo: "odoo/odoo"
             odoo_enterprise_org_repo: "Spearhead-Odoo/enterprise"
             image_name: py3.10-odoo17.0
-          - python_version: "3.12"
-            codename: jammy
-            odoo_version: "18.0"
-            odoo_org_repo: "odoo/odoo"
-            image_name: py3.12-odoo18.0
           - python_version: "3.7"
             codename: jammy
             odoo_version: "13.0"

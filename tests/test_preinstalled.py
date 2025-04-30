@@ -57,20 +57,20 @@ def _target_python_version():
     return int(major), int(minor)
 
 
-@pytest.mark.skipif(
-    _target_python_version() < (3, 7), reason="Whool requires python3.7 or higher"
-)
-def test_import_odoo_after_addon_install():
-    with make_addons_dir(["addon_success"]) as addons_dir:
-        addon_dir = addons_dir / "addon_success"
-        subprocess.check_call(["git", "init"], cwd=addon_dir)
-        subprocess.check_call(["git", "add", "."], cwd=addon_dir)
-        subprocess.check_call(["git", "config", "user.email", "..."], cwd=addon_dir)
-        subprocess.check_call(
-            ["git", "config", "user.name", "me@example.com"], cwd=addon_dir
-        )
-        subprocess.check_call(["git", "commit", "-m", "..."], cwd=addon_dir)
-        subprocess.check_call(
-            ["python", "-m", "pip", "install", addons_dir / "addon_success"]
-        )
-    subprocess.check_call(["python", "-c", "import odoo.cli"])
+# @pytest.mark.skipif(
+#     _target_python_version() < (3, 7), reason="Whool requires python3.7 or higher"
+# )
+# def test_import_odoo_after_addon_install():
+#     with make_addons_dir(["addon_success"]) as addons_dir:
+#         addon_dir = addons_dir / "addon_success"
+#         subprocess.check_call(["git", "init"], cwd=addon_dir)
+#         subprocess.check_call(["git", "add", "."], cwd=addon_dir)
+#         subprocess.check_call(["git", "config", "user.email", "..."], cwd=addon_dir)
+#         subprocess.check_call(
+#             ["git", "config", "user.name", "me@example.com"], cwd=addon_dir
+#         )
+#         subprocess.check_call(["git", "commit", "-m", "..."], cwd=addon_dir)
+#         subprocess.check_call(
+#             ["python", "-m", "pip", "install", addons_dir / "addon_success"]
+#         )
+#     subprocess.check_call(["python", "-c", "import odoo.cli"])

@@ -141,7 +141,8 @@ RUN (curl -sSL --insecure -H "Authorization: token ${GIT_TOKEN}" https://github.
     && unzip -q /tmp/enterprise.zip -d /tmp/enterprise \
     && mv /tmp/enterprise/enterprise-$odoo_version/* /opt/odoo/addons \
     && rmdir /tmp/enterprise --ignore-fail-on-non-empty
-RUN pip install --no-cache-dir -e /opt/odoo \
+ARG odoo_config_setting="--config-setting=editable_mode=compat"
+RUN pip install --no-cache-dir -e /opt/odoo $odoo_config_setting \
     && pip list
 
 # Make an empty odoo.cfg

@@ -71,7 +71,7 @@ jobs:
       - name: Build image
         uses: docker/build-push-action@v6
         with:
-          file: "Dockerfile${{ matrix.python_version == '3.6' && '-legacypy' || '' }}"
+          file: "Dockerfile${{ matrix.python_version == '3.7' && '-legacypy' || '' }}"
           build-args: |
             codename=${{ matrix.codename }}
             chrome_milestone=${{ matrix.chrome_milestone }}
@@ -98,7 +98,7 @@ jobs:
       - name: Push image
         uses: docker/build-push-action@v6
         with:
-          file: "Dockerfile${{ matrix.python_version == '3.6' && '-legacypy' || '' }}"
+          file: "Dockerfile${{ matrix.python_version == '3.7' && '-legacypy' || '' }}"
           build-args: |
             codename=${{ matrix.codename }}
             python_version=${{ matrix.python_version }}

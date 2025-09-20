@@ -23,7 +23,7 @@ jobs:
         include:
           # odoo/odoo
           - python_version: "3.12"
-            codename: noble
+            codename: jammy
             chrome_milestone: 139
             odoo_version: "19.0"
             odoo_org_repo: "odoo/odoo"

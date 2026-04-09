@@ -11,19 +11,43 @@
 set -ex
 shopt -s nullglob  # in case there is no setup.py nor pyproject.toml
 
-# Compute and install direct dependencies of installable addons in $ADDONS_DIR
+# Compute and install direct dependencies of installable addons in $ADDONS_DIR and all ADDONS_PATH dirs
 # (this includes addons, python external dependencies and odoo itself).
 # The environment variables are for better perfomance as we are interested in
 # the dependencies metadata only, and not the exact versions.
 # --no-isolation is for performance. The Dockerfile has setuptools-odoo and whool
 # preinstalled in the same environment as pyproject-dependencies.
 # --ignore-build-errors is needed to avoid errors with uninstallable addons.
+
+# Build list of all addon directories from ADDONS_PATH to search for dependencies
+PYPROJECT_PATHS="${ADDONS_DIR}/*/pyproject.toml ${ADDONS_DIR}/setup/*/setup.py"
+
+# Read the actual addons_path from odoo.cfg instead of relying on ADDONS_PATH env var
+# The Dockerfile sets up the correct addons_path in odoo.cfg but ADDONS_PATH env may be outdated
+if [ -f "${ODOO_RC}" ]; then
+    ACTUAL_ADDONS_PATH=$(grep "^addons_path" "${ODOO_RC}" | cut -d'=' -f2 | tr -d ' ')
+    echo "Found addons_path in ${ODOO_RC}: ${ACTUAL_ADDONS_PATH}"
+    if [ -n "${ACTUAL_ADDONS_PATH}" ]; then
+        # Add pyproject.toml files from all directories in actual addons_path
+        # Convert comma-separated string to space-separated and iterate
+        ADDON_DIRS_SPACE=$(echo "${ACTUAL_ADDONS_PATH}" | tr ',' ' ')
+        for addon_dir in ${ADDON_DIRS_SPACE}; do
+            if [ -d "$addon_dir" ] && [ "$addon_dir" != "${ADDONS_DIR}" ]; then
+                echo "Adding addon directory to search: $addon_dir"
+                PYPROJECT_PATHS="${PYPROJECT_PATHS} ${addon_dir}/*/pyproject.toml ${addon_dir}/setup/*/setup.py"
+            fi
+        done
+    fi
+fi
+
+echo "Final PYPROJECT_PATHS: ${PYPROJECT_PATHS}"
+
 env SETUPTOOLS_ODOO_POST_VERSION_STRATEGY_OVERRIDE=none \
     WHOOL_POST_VERSION_STRATEGY_OVERRIDE=none \
     pyproject-dependencies \
       --no-isolation \
       --ignore-build-errors \
-      ${ADDONS_DIR}/*/pyproject.toml ${ADDONS_DIR}/setup/*/setup.py \
+      ${PYPROJECT_PATHS} \
       >> test-requirements.txt
 cat test-requirements.txt
 

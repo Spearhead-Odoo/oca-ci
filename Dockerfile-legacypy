@@ -115,8 +115,9 @@ ENV PATH=/opt/odoo-venv/bin:$PATH
 
 ARG odoo_version
 ARG odoo_org_repo=odoo/odoo
-ARG odoo_enterprise_org_repo=odoo/enterprise
 ARG GIT_TOKEN=""
+# Additional repositories to clone (space-separated list: "owner/repo:folder owner2/repo2:folder2")
+ARG ADDITIONAL_REPOS=""
 
 # Install Odoo requirements (use ADD for correct layer caching).
 # We use requirements from OCB for easier maintenance of older versions.
@@ -148,10 +149,19 @@ RUN mkdir /tmp/getodoo \
     && (curl -sSL https://github.com/$odoo_org_repo/tarball/$odoo_version | tar -C /tmp/getodoo -xz) \
     && mv /tmp/getodoo/* /opt/odoo \
     && rmdir /tmp/getodoo
-RUN (curl -sSL --insecure -H "Authorization: token ${GIT_TOKEN}" https://github.com/$odoo_enterprise_org_repo/archive/refs/heads/$odoo_version.zip -o /tmp/enterprise.zip) \
-    && unzip -q /tmp/enterprise.zip -d /tmp/enterprise \
-    && mv /tmp/enterprise/enterprise-$odoo_version/* /opt/odoo/addons \
-    && rmdir /tmp/enterprise --ignore-fail-on-non-empty
+
+# Clone additional repositories dynamically
+RUN if [ -n "${ADDITIONAL_REPOS}" ]; then \
+      echo "Cloning additional repositories: ${ADDITIONAL_REPOS}" && \
+      for repo_info in ${ADDITIONAL_REPOS}; do \
+        repo=$(echo "$repo_info" | cut -d: -f1) && \
+        folder=$(echo "$repo_info" | cut -d: -f2) && \
+        echo "Cloning $repo into /opt/odoo/$folder" && \
+        git clone --depth 1 --branch $odoo_version https://${GIT_TOKEN}@github.com/$repo.git /opt/odoo/$folder; \
+      done; \
+    else \
+      echo "No additional repositories to clone"; \
+    fi
 RUN pip install --no-cache-dir -e /opt/odoo                         \
     && pip list
 
@@ -160,6 +170,17 @@ RUN echo "[options]" > /etc/odoo.cfg
 ENV ODOO_RC=/etc/odoo.cfg
 
 COPY bin/* /usr/local/bin/
+
+# Update ADDONS_PATH in oca_install_addons script based on cloned repositories  
+RUN if [ -n "${ADDITIONAL_REPOS}" ]; then \
+      ADDONS_PATH_BUILD="/opt/odoo/addons" && \
+      for repo_info in ${ADDITIONAL_REPOS}; do \
+        folder=$(echo "$repo_info" | cut -d: -f2) && \
+        ADDONS_PATH_BUILD="$ADDONS_PATH_BUILD,/opt/odoo/$folder"; \
+      done && \
+      echo "Setting ADDONS_PATH in script to: $ADDONS_PATH_BUILD" && \
+      sed -i "s|echo \"addons_path=\${ADDONS_PATH}|echo \"addons_path=$ADDONS_PATH_BUILD|" /usr/local/bin/oca_install_addons; \
+    fi
 
 ENV ODOO_VERSION=$odoo_version
 ENV GIT_TOKEN=

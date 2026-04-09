@@ -12,8 +12,16 @@ def test_addons_path():
         == "[options]\n"
     )
     with install_test_addons(["addon_success"]):
-        assert (
-            Path(os.environ["ODOO_RC"]).read_text()
-            == "[options]\naddons_path=/opt/odoo/addons,.\n"
-        )
+        content = Path(os.environ["ODOO_RC"]).read_text()
+        
+        # Should start with [options] and have addons_path
+        assert content.startswith("[options]\naddons_path=")
+        
+        # Should include base addons directory
+        assert "/opt/odoo/addons" in content
+        
+        # Should end with current directory
+        assert content.endswith(",.\n")
+        
+        # Should be valid for odoo
         subprocess.check_call(["python", "-c", "import odoo.cli"])

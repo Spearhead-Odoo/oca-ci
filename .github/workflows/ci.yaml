@@ -27,28 +27,28 @@ jobs:
             chrome_milestone: 139
             odoo_version: "19.0"
             odoo_org_repo: "odoo/odoo"
-            odoo_enterprise_org_repo: "Spearhead-Odoo/enterprise"
+            ADDITIONAL_REPOS: "Spearhead-Odoo/enterprise:enterprise"
             image_name: py3.12-odoo19.0
           - python_version: "3.12"
             codename: jammy
             chrome_milestone: 139
             odoo_version: "18.0"
             odoo_org_repo: "odoo/odoo"
-            odoo_enterprise_org_repo: "Spearhead-Odoo/enterprise"
+            ADDITIONAL_REPOS: "Spearhead-Odoo/enterprise:enterprise Spearhead-Odoo/odoo-apps-18-compiled:spearhead-apps Spearhead-Odoo/ecuadorian-hr-18-compiled:spearhead-hr Spearhead-Odoo/ecuadorian-localization-18-compiled:spearhead-localization Spearhead-Odoo/purchase-and-imports-18-compiled:spearhead-purchase Spearhead-Odoo/app_store:spearhead-app-store"
             image_name: py3.12-odoo18.0
           - python_version: "3.10"
             codename: jammy
             chrome_milestone: 139
             odoo_version: "17.0"
             odoo_org_repo: "odoo/odoo"
-            odoo_enterprise_org_repo: "Spearhead-Odoo/enterprise"
+            ADDITIONAL_REPOS: "Spearhead-Odoo/enterprise:enterprise"
             image_name: py3.10-odoo17.0
           - python_version: "3.7"
             codename: jammy
             chrome_milestone: 126
             odoo_version: "13.0"
             odoo_org_repo: "odoo/odoo"
-            odoo_enterprise_org_repo: "Spearhead-Odoo/enterprise"
+            ADDITIONAL_REPOS: "Spearhead-Odoo/enterprise:enterprise"
             image_name: py3.7-odoo13.0
     services:
       postgres:
@@ -78,7 +78,7 @@ jobs:
             python_version=${{ matrix.python_version }}
             odoo_version=${{ matrix.odoo_version }}
             odoo_org_repo=${{ matrix.odoo_org_repo }}
-            odoo_enterprise_org_repo=${{ matrix.odoo_enterprise_org_repo }}
+            ADDITIONAL_REPOS=${{ matrix.ADDITIONAL_REPOS }}
             GIT_TOKEN=${{ secrets.GIT_TOKEN }}
           tags: |
             ghcr.io/spearhead-odoo/oca-ci/${{ matrix.image_name }}:latest
@@ -105,7 +105,7 @@ jobs:
             python_version=${{ matrix.python_version }}
             odoo_version=${{ matrix.odoo_version }}
             odoo_org_repo=${{ matrix.odoo_org_repo }}
-            odoo_enterprise_org_repo=${{ matrix.odoo_enterprise_org_repo }}
+            ADDITIONAL_REPOS=${{ matrix.ADDITIONAL_REPOS }}
             GIT_TOKEN=${{ secrets.GIT_TOKEN }}
           tags: |
             ghcr.io/spearhead-odoo/oca-ci/${{ matrix.image_name }}:latest

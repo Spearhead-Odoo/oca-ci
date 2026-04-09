@@ -10,14 +10,14 @@ git config --global --add safe.directory $PWD
 # show pip config
 pip config list
 
+# Add ADDONS_DIR to addons_path.
+echo "addons_path=${ADDONS_PATH},${ADDONS_DIR}" >> ${ODOO_RC}
+cat ${ODOO_RC}
+
 oca_install_addons__deps_and_addons_path
 
 # show what we have installed
 pip freeze
-
-# Add ADDONS_DIR to addons_path.
-echo "addons_path=${ADDONS_PATH},${ADDONS_DIR}" >> ${ODOO_RC}
-cat ${ODOO_RC}
 
 deps=$(oca_list_external_dependencies deb)
 if [ -n "$deps" ]; then

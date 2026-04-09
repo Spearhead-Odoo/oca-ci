@@ -102,7 +102,7 @@ RUN curl -sSL $(curl -s https://googlechromelabs.github.io/chrome-for-testing/la
     && rm /tmp/chrome.zip
 
 # We use manifestoo to check licenses, development status and list addons and dependencies
-RUN pipx install --pip-args="--no-cache-dir" "manifestoo>=0.3.1"
+RUN pipx install --pip-args="--no-cache-dir" "manifestoo>=1.1"
 # Used in oca_checklog_odoo to check odoo logs for errors and warnings
 RUN pipx install --pip-args="--no-cache-dir" checklog-odoo
 
@@ -163,7 +163,6 @@ RUN pip install --no-cache-dir -e /opt/odoo --config-setting=editable_mode=compa
 # Make an empty odoo.cfg
 RUN echo "[options]" > /etc/odoo.cfg
 ENV ODOO_RC=/etc/odoo.cfg
-ENV OPENERP_SERVER=/etc/odoo.cfg
 
 COPY bin/* /usr/local/bin/
 
@@ -187,3 +186,4 @@ ENV EXCLUDE=
 ENV OCA_GIT_USER_NAME=oca-ci
 ENV OCA_GIT_USER_EMAIL=oca-ci@odoo-community.org
 ENV OCA_ENABLE_CHECKLOG_ODOO=
+ENV ODOO_BROWSER_LOG_VERBOSITY=1

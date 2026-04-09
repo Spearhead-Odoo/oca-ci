@@ -24,7 +24,6 @@ Environment variables:
 
 - `ODOO_VERSION` (8.0, ..., 14.0, ...)
 - `ODOO_RC`
-- `OPENERP_SERVER=$ODOO_RC`
 - `PGHOST=postgres`
 - `PGUSER=odoo`
 - `PGPASSWORD=odoo`
@@ -61,10 +60,11 @@ Available commands:
 
 Build args:
 
-- python_version (no default)
-- odoo_version (no default)
+- python_version (no default, e.g. 3.10)
+- odoo_version (no default, e.g. 19.0)
 - codename (default: focal)
 - odoo_org_repo (default: odoo/odoo)
+- chrome_milestone (default: 126)
 
 ## Tests
 

@@ -41,7 +41,7 @@ jobs:
             chrome_milestone: 139
             odoo_version: "17.0"
             odoo_org_repo: "odoo/odoo"
-            ADDITIONAL_REPOS: "Spearhead-Odoo/enterprise:enterprise"
+            ADDITIONAL_REPOS: "Spearhead-Odoo/enterprise:enterprise Spearhead-Odoo/odoo_generic_addons:spearhead-odoo_generic_addons"
             image_name: py3.10-odoo17.0
           - python_version: "3.7"
             codename: jammy

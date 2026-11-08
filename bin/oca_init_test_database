@@ -27,7 +27,7 @@ fi
 # Build odoo run parameters
 params=(
   -d "$PGDATABASE"
-  -i "$ADDONS"
+  -i "${ADDONS:-base}"
   --http-interface=127.0.0.1
   --stop-after-init
 )

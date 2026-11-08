@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pytest
 
-from .common import odoo_bin, make_addons_dir
+from .common import odoo_bin, make_addons_dir, get_addon_project_dir
 
 
 def test_odoo_bin_in_path():
@@ -17,6 +17,15 @@ def test_odoo_bin_in_path():
 
 def test_wkhtomtopdf_in_path():
     assert shutil.which("wkhtmltopdf")
+
+@pytest.mark.skipif(
+    float(os.environ["ODOO_VERSION"]) < 20, reason="Paper-muncher is only needed for Odoo 20 and above"
+)
+def test_papermuncher_in_path():
+    assert shutil.which("paper-muncher")
+
+def test_rtlcss_in_path():
+    assert shutil.which("rtlcss")
 
 
 def test_python_in_path():
@@ -58,7 +67,9 @@ def _target_python_version():
 )
 def test_import_odoo_after_addon_install():
     with make_addons_dir(["addon_success"]) as addons_dir:
-        addon_dir = addons_dir / "addon_success"
+        addon_name = "addon_success"
+        addon_dir = addons_dir / addon_name
+        addon_project_dir = get_addon_project_dir(addons_dir, addon_name)
         subprocess.check_call(["git", "init"], cwd=addon_dir)
         subprocess.check_call(["git", "add", "."], cwd=addon_dir)
         subprocess.check_call(["git", "config", "user.email", "..."], cwd=addon_dir)
@@ -67,6 +78,6 @@ def test_import_odoo_after_addon_install():
         )
         subprocess.check_call(["git", "commit", "-m", "..."], cwd=addon_dir)
         subprocess.check_call(
-            ["python", "-m", "pip", "install", addons_dir / "addon_success"]
+            ["python", "-m", "pip", "install", addon_project_dir]
         )
     subprocess.check_call(["python", "-c", "import odoo.cli"])

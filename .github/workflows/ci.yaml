@@ -23,12 +23,20 @@ jobs:
         include:
           # odoo/odoo
           - python_version: "3.12"
+            codename: noble
+            chrome_milestone: 139
+            odoo_version: "20.0"
+            odoo_org_repo: "odoo/odoo"
+            image_name: py3.12-odoo20.0
+            build_deps: "whool"
+          - python_version: "3.12"
             codename: jammy
             chrome_milestone: 139
             odoo_version: "19.0"
             odoo_org_repo: "odoo/odoo"
             ADDITIONAL_REPOS: "Spearhead-Odoo/enterprise:enterprise"
             image_name: py3.12-odoo19.0
+            build_deps: "setuptools-odoo wheel whool"
           - python_version: "3.12"
             codename: jammy
             chrome_milestone: 139
@@ -36,6 +44,7 @@ jobs:
             odoo_org_repo: "odoo/odoo"
             ADDITIONAL_REPOS: "Spearhead-Odoo/enterprise:enterprise Spearhead-Odoo/odoo-apps-18-compiled:spearhead-apps Spearhead-Odoo/ecuadorian-hr-18-compiled:spearhead-hr Spearhead-Odoo/ecuadorian-localization-18-compiled:spearhead-localization Spearhead-Odoo/purchase-and-imports-18-compiled:spearhead-purchase Spearhead-Odoo/app_store:spearhead-app-store"
             image_name: py3.12-odoo18.0
+            build_deps: "setuptools-odoo wheel whool"
           - python_version: "3.10"
             codename: jammy
             chrome_milestone: 139
@@ -43,6 +52,7 @@ jobs:
             odoo_org_repo: "odoo/odoo"
             ADDITIONAL_REPOS: "Spearhead-Odoo/enterprise:enterprise Spearhead-Odoo/odoo_generic_addons:spearhead-odoo_generic_addons"
             image_name: py3.10-odoo17.0
+            build_deps: "setuptools-odoo wheel whool"
           - python_version: "3.7"
             codename: jammy
             chrome_milestone: 126
@@ -50,9 +60,11 @@ jobs:
             odoo_org_repo: "odoo/odoo"
             ADDITIONAL_REPOS: "Spearhead-Odoo/enterprise:enterprise"
             image_name: py3.7-odoo13.0
+            test_postgres_version: "12"
+            build_deps: "setuptools-odoo wheel whool"
     services:
       postgres:
-        image: postgres:14.0
+        image: postgres:${{ matrix.test_postgres_version || '16' }}
         env:
           POSTGRES_USER: odoo
           POSTGRES_PASSWORD: odoo
@@ -80,6 +92,7 @@ jobs:
             odoo_org_repo=${{ matrix.odoo_org_repo }}
             ADDITIONAL_REPOS=${{ matrix.ADDITIONAL_REPOS }}
             GIT_TOKEN=${{ secrets.GIT_TOKEN }}
+            build_deps=${{ matrix.build_deps }}
           tags: |
             ghcr.io/spearhead-odoo/oca-ci/${{ matrix.image_name }}:latest
           labels: |
@@ -107,6 +120,7 @@ jobs:
             odoo_org_repo=${{ matrix.odoo_org_repo }}
             ADDITIONAL_REPOS=${{ matrix.ADDITIONAL_REPOS }}
             GIT_TOKEN=${{ secrets.GIT_TOKEN }}
+            build_deps=${{ matrix.build_deps }}
           tags: |
             ghcr.io/spearhead-odoo/oca-ci/${{ matrix.image_name }}:latest
           labels: |
